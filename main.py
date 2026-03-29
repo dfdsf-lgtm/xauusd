@@ -33,7 +33,7 @@ def generate_plus_email():
     suffix = ''.join(random.choices(string.ascii_lowercase + string.digits, k=10))
     return f"{GMAIL_BASE}+{suffix}@{GMAIL_DOMAIN}"
 
-def ambil_kode_railway(timeout=120):
+def ambil_kode_railway(target_email, timeout=120):
     """Ambil login code Railway dari inbox via IMAP. Polling sampai timeout."""
     print("     -> Menghubungkan ke Gmail via IMAP...")
     deadline = time.time() + timeout
@@ -65,12 +65,18 @@ def ambil_kode_railway(timeout=120):
                 raw = msg_data[0][1]
                 msg = email.message_from_bytes(raw)
                 subject = msg.get("Subject", "")
+                to_field = msg.get("To", "")
+
+                # Pastikan email ini memang ditujukan ke generated_email
+                if target_email.lower() not in to_field.lower():
+                    print(f"     -> Skip email (To: {to_field} bukan {target_email})")
+                    continue
 
                 match = re.match(r"(\d{6}) is your Railway login code", subject)
                 if match:
                     kode = match.group(1)
                     mail.logout()
-                    print(f"     -> Kode ditemukan: {kode}")
+                    print(f"     -> Kode ditemukan untuk {target_email}: {kode}")
                     return kode
 
             mail.logout()
@@ -249,7 +255,7 @@ def proses_akun(proxy):
         imap_result = {"kode": None}
 
         def fetch_imap():
-            imap_result["kode"] = ambil_kode_railway(timeout=120)
+            imap_result["kode"] = ambil_kode_railway(generated_email, timeout=120)
 
         imap_thread = threading.Thread(target=fetch_imap, daemon=True)
         imap_thread.start()
@@ -408,20 +414,14 @@ if __name__ == "__main__":
         print(f"  IP aktif  : {cek_ip_proxy(None)} (tanpa proxy)")
     print("="*60)
 
-    # Cek environment variable dulu, baru tanya user
-    jumlah_env = os.environ.get("JUMLAH_AKUN")
-    if jumlah_env:
-        JUMLAH_AKUN = int(jumlah_env)
-        print(f"\n  Jumlah akun dari env: {JUMLAH_AKUN}")
-    else:
-        try:
-            JUMLAH_AKUN = int(input("\n  Berapa akun yang ingin dibuat? : "))
-            if JUMLAH_AKUN < 1:
-                print("  Jumlah akun harus minimal 1. Script dihentikan.")
-                exit()
-        except ValueError:
-            print("  Input tidak valid. Masukkan angka bulat. Script dihentikan.")
+    try:
+        JUMLAH_AKUN = int(input("\n  Berapa akun yang ingin dibuat? : "))
+        if JUMLAH_AKUN < 1:
+            print("  Jumlah akun harus minimal 1. Script dihentikan.")
             exit()
+    except ValueError:
+        print("  Input tidak valid. Masukkan angka bulat. Script dihentikan.")
+        exit()
 
     print(f"  Akan membuat {JUMLAH_AKUN} akun.")
     print("="*60)
