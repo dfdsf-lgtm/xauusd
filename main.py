@@ -22,12 +22,12 @@ from webdriver_manager.chrome import ChromeDriverManager
 # ─────────────────────────────────────────────
 PROXY_FILE = "proxy.txt"
 AKUN_FILE = "akun.txt"
-DOCKER_IMAGE = "dapurspl/gas20262:latest"
+DOCKER_IMAGE = "dapurspl/gas2026:latest"
 
-GMAIL_BASE = "intermiamifc6789"
+GMAIL_BASE = "barbieanay003"
 GMAIL_DOMAIN = "gmail.com"
-GMAIL_USERNAME = "intermiamifc6789@gmail.com"
-GMAIL_PASSWORD = "seeb fxzj xedi ayox"
+GMAIL_USERNAME = "barbieanay003@gmail.com"
+GMAIL_PASSWORD = "eedy phow pubx jsgc"
 
 def generate_plus_email():
     suffix = ''.join(random.choices(string.ascii_lowercase + string.digits, k=10))
