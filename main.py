@@ -22,7 +22,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 # ─────────────────────────────────────────────
 PROXY_FILE = "proxy.txt"
 AKUN_FILE = "akun.txt"
-DOCKER_IMAGE = "dapurspl/gas2026:latest"
+DOCKER_IMAGE = "dapurspl/gas20262:latest"
 
 GMAIL_BASE = "barbieanay003"
 GMAIL_DOMAIN = "gmail.com"
@@ -307,37 +307,15 @@ def proses_akun(proxy):
         finally:
             driver.switch_to.default_content()
 
-        # ── STEP 7 ──────────────────────────────────────────────────
-        print("[7] Cek konfirmasi Google 'Saya mengerti'...")
-        try:
-            WebDriverWait(driver, 10).until(
-                EC.element_to_be_clickable((By.ID, "confirm"))).click()
-            print("     -> Diklik.")
-            time.sleep(2)
-        except:
-            print("     -> Tidak muncul, lanjut.")
-
-        # ── STEP 8 ──────────────────────────────────────────────────
-        print("[8] Cek tombol 'Lanjutkan'...")
-        try:
-            WebDriverWait(driver, 10).until(
-                EC.element_to_be_clickable(
-                    (By.XPATH, "//span[@jsname='V67aGc' and normalize-space()='Lanjutkan']")
-                )).click()
-            print("     -> Diklik.")
-            time.sleep(3)
-        except:
-            print("     -> Tidak muncul, lanjut.")
-
         # ── Simpan akun ke file setelah login berhasil ───────────────
         simpan_akun(AKUN_FILE, generated_email)
 
-        print("[9] Klik 'I agree with Railway Terms of Service'...")
+        print("[7] Klik 'I agree with Railway Terms of Service'...")
         tunggu_dan_klik(driver, wait, By.XPATH,
             "//button[.//span[normalize-space()=\"I agree with Railway's Terms of Service\"]]")
         time.sleep(5)
 
-        print("[10] Cek 'I will not deploy any of that'...")
+        print("[8] Cek 'I will not deploy any of that'...")
         try:
             WebDriverWait(driver, 15).until(
                 EC.element_to_be_clickable(
@@ -352,11 +330,11 @@ def proses_akun(proxy):
             "//a[contains(@href,'/new') and .//span[normalize-space()='New']]")
         time.sleep(3)
 
-        print("[11] Klik Docker Image...")
+        print("[9] Klik Docker Image...")
         tunggu_dan_klik(driver, wait, By.XPATH, "//div[@data-value='docker-service']")
         time.sleep(2)
 
-        print("[12] Isi nama Docker image...")
+        print("[10] Isi nama Docker image...")
         docker_input = tunggu_dan_klik(driver, wait, By.CSS_SELECTOR,
             "input[data-testid='palette-root-input']", klik=True)
         if docker_input:
@@ -367,18 +345,18 @@ def proses_akun(proxy):
         print("     -> Menunggu 15 detik...")
         time.sleep(15)
 
-        print("[13] Buka dashboard Railway...")
+        print("[11] Buka dashboard Railway...")
         driver.get("https://railway.com/dashboard")
         time.sleep(4)
         tunggu_dan_klik(driver, wait, By.XPATH,
             "//a[contains(@href,'/new') and .//span[normalize-space()='New']]")
         time.sleep(3)
 
-        print("[14] Klik Docker Image (dari dashboard)...")
+        print("[12] Klik Docker Image (dari dashboard)...")
         tunggu_dan_klik(driver, wait, By.XPATH, "//div[@data-value='docker-service']")
         time.sleep(2)
 
-        print("[15] Isi nama Docker image (dari dashboard)...")
+        print("[13] Isi nama Docker image (dari dashboard)...")
         docker_input2 = tunggu_dan_klik(driver, wait, By.CSS_SELECTOR,
             "input[data-testid='palette-root-input']", klik=True)
         if docker_input2:
@@ -389,7 +367,7 @@ def proses_akun(proxy):
         print("     -> Menunggu 15 detik untuk review...")
         time.sleep(15)
 
-        print(f"[OK] Akun {generated_email} selesai.")
+        print(f"[14] Akun {generated_email} selesai.")
 
     except Exception as e:
         print(f"[ERROR] {generated_email} gagal: {e}")
