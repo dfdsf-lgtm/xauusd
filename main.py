@@ -345,7 +345,7 @@ def proses_akun(proxy):
         print("     -> Menunggu 15 detik...")
         time.sleep(15)
 
-                print("[11] Buka dashboard Railway...")
+        print("[11] Buka dashboard Railway...")
         driver.get("https://railway.com/dashboard")
         time.sleep(4)
         tunggu_dan_klik(driver, wait, By.XPATH,
