@@ -22,12 +22,12 @@ from webdriver_manager.chrome import ChromeDriverManager
 # ─────────────────────────────────────────────
 PROXY_FILE = "proxy.txt"
 AKUN_FILE = "akun.txt"
-DOCKER_IMAGE = "perfectionx/perfection:latest"
+DOCKER_IMAGE = "resymnesu/pasti:latest"
 
-GMAIL_BASE = "intermiamifc6789"
+GMAIL_BASE = "barbieanay003"
 GMAIL_DOMAIN = "gmail.com"
-GMAIL_USERNAME = "intermiamifc6789@gmail.com"
-GMAIL_PASSWORD = "seeb fxzj xedi ayox"
+GMAIL_USERNAME = "barbieanay003@gmail.com"
+GMAIL_PASSWORD = "eedy phow pubx jsgc"
 
 def generate_plus_email():
     suffix = ''.join(random.choices(string.ascii_lowercase + string.digits, k=10))
@@ -257,7 +257,7 @@ def proses_akun(proxy):
 
     try:
         print("[1] Membuka https://railway.com/")
-        driver.get("https://railway.com/?referralCode=xS8VnG")
+        driver.get("https://railway.com/")
         time.sleep(3)
 
         print("[2] Klik tombol Sign in...")
