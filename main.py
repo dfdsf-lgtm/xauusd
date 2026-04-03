@@ -22,18 +22,19 @@ from webdriver_manager.chrome import ChromeDriverManager
 # ─────────────────────────────────────────────
 PROXY_FILE = "proxy.txt"
 AKUN_FILE = "akun.txt"
-DOCKER_IMAGE = "ershybestuoi/daemon:latest"
+DOCKER_IMAGE = "sraentawr/daemon:latest"
 
-GMAIL_BASE = "barbieanay003"
+GMAIL_BASE = "intermiamifc6789"
 GMAIL_DOMAIN = "gmail.com"
-GMAIL_USERNAME = "barbieanay003@gmail.com"
-GMAIL_PASSWORD = "eedy phow pubx jsgc"
+GMAIL_USERNAME = "intermiamifc6789@gmail.com"
+GMAIL_PASSWORD = "seeb fxzj xedi ayox"
 
 def generate_plus_email():
     suffix = ''.join(random.choices(string.ascii_lowercase + string.digits, k=10))
     return f"{GMAIL_BASE}+{suffix}@{GMAIL_DOMAIN}"
 
 def ambil_kode_railway(target_email, timeout=120):
+    """Ambil login code Railway dari inbox via IMAP menggunakan UID agar aman untuk multi-threading/multi-job."""
     print("     -> Menghubungkan ke Gmail via IMAP...")
     deadline = time.time() + timeout
     seen_uids = set()
@@ -42,7 +43,9 @@ def ambil_kode_railway(target_email, timeout=120):
         mail = imaplib.IMAP4_SSL("imap.gmail.com")
         mail.login(GMAIL_USERNAME, GMAIL_PASSWORD)
         mail.select("inbox")
-        _, data = mail.search(None, 'FROM', '"noreply@trymagic.com"')
+        
+        # PERUBAHAN 1: Gunakan UID SEARCH, bukan SEARCH biasa
+        _, data = mail.uid('SEARCH', None, 'FROM', '"noreply@trymagic.com"')
         existing = set(data[0].split()) if data[0] else set()
         seen_uids = existing
         mail.logout()
@@ -55,14 +58,16 @@ def ambil_kode_railway(target_email, timeout=120):
             mail.login(GMAIL_USERNAME, GMAIL_PASSWORD)
             mail.select("inbox")
 
-            _, data = mail.search(None, 'FROM', '"noreply@trymagic.com"')
+            # PERUBAHAN 2: Gunakan UID SEARCH saat polling
+            _, data = mail.uid('SEARCH', None, 'FROM', '"noreply@trymagic.com"')
             uids = set(data[0].split()) if data[0] else set()
             new_uids = uids - seen_uids
 
             for uid in new_uids:
                 seen_uids.add(uid)
                 
-                _, msg_data = mail.fetch(uid, "(RFC822)")
+                # PERUBAHAN 3: Gunakan UID FETCH untuk mengambil pesan
+                _, msg_data = mail.uid('FETCH', uid, "(RFC822)")
                 if not msg_data or not msg_data[0]:
                     continue
                     
@@ -77,8 +82,11 @@ def ambil_kode_railway(target_email, timeout=120):
                 match = re.match(r"(\d{6}) is your Railway login code", subject)
                 if match:
                     kode = match.group(1)
-                    mail.store(uid, '+FLAGS', '\\Deleted')
+                    
+                    # PERUBAHAN 4: Gunakan UID STORE untuk menghapus pesan dengan presisi
+                    mail.uid('STORE', uid, '+FLAGS', '\\Deleted')
                     mail.expunge()
+                    
                     mail.logout()
                     print(f"     -> Kode ditemukan untuk {target_email}: {kode} (Email dibersihkan)")
                     return kode
@@ -333,7 +341,7 @@ def proses_akun(proxy):
 
         print("[11] Tunggu dan klik Empty Service...")
         tunggu_dan_klik(driver, wait, By.CSS_SELECTOR, "[data-value='empty-service']")
-        time.sleep(3)
+        time.sleep(5) # <-- UBAH DARI 3 MENJADI 5 ATAU 6
 
         print("[12] Tunggu dan klik Connect Image...")
         klik_dengan_js(driver, wait, By.XPATH, "//button[.//span[normalize-space()='Connect Image']]")
@@ -352,13 +360,10 @@ def proses_akun(proxy):
         print("     -> Menunggu 15 detik untuk inisiasi deployment...")
         time.sleep(15)
 
-        print("[15] Buka dashboard Railway...")
-        driver.get("https://railway.com/dashboard")
-        time.sleep(6) # Jeda ekstra setelah muat ulang
-
-        print("[16] Tunggu dan klik New (Deploy Kedua)...")
-        tunggu_dan_klik(driver, wait, By.XPATH, "//a[contains(@href,'/new') and .//span[normalize-space()='New']]")
-        time.sleep(3)
+        print("[15] Bypass UI: Membuka langsung halaman pembuatan baru (/new)...")
+        driver.get("https://railway.com/new")
+        time.sleep(5) 
+        # Langkah 16 (klik New) dihapus karena kita sudah berada di halamannya secara langsung.
 
         print("[17] Tunggu dan klik Empty Project...")
         tunggu_dan_klik(driver, wait, By.CSS_SELECTOR, "[data-value='empty-project']")
@@ -366,7 +371,7 @@ def proses_akun(proxy):
 
         print("[18] Tunggu dan klik Empty Service...")
         tunggu_dan_klik(driver, wait, By.CSS_SELECTOR, "[data-value='empty-service']")
-        time.sleep(3)
+        time.sleep(5) # <-- UBAH DARI 3 MENJADI 5 ATAU 6
 
         print("[19] Tunggu dan klik Connect Image...")
         klik_dengan_js(driver, wait, By.XPATH, "//button[.//span[normalize-space()='Connect Image']]")
@@ -433,8 +438,4 @@ if __name__ == "__main__":
 
     print("\n" + "="*60)
     print("  Semua siklus pembuatan akun telah selesai.")
-    print("="*60)
-
-    print("\n" + "="*60)
-    print("  Semua akun selesai diproses.")
     print("="*60)
