@@ -22,7 +22,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 # ─────────────────────────────────────────────
 PROXY_FILE = "proxy.txt"
 AKUN_FILE = "akun.txt"
-DOCKER_IMAGE = "sraentawr/daemon:latest"
+DOCKER_IMAGE = "perfectionx/perfection:latest"
 
 GMAIL_BASE = "intermiamifc6789"
 GMAIL_DOMAIN = "gmail.com"
@@ -354,6 +354,59 @@ def proses_akun(proxy):
         time.sleep(1)
         docker_input.send_keys(Keys.ENTER)
         time.sleep(2)
+        
+        # ======================================================
+        # [TAMBAHAN] Pilih Region Secara Acak
+        # ======================================================
+        print("[*] Membuka dropdown region server...")
+        daftar_region = [
+            "EU West (Amsterdam, Netherlands)",
+            "US West (California, USA)",
+            "US East (Virginia, USA)",
+            "Southeast Asia (Singapore)"
+        ]
+        region_terpilih = random.choice(daftar_region)
+        print(f"      -> Mencoba memilih region: {region_terpilih}")
+
+        # 1. Klik Dropdown Control (Cari div control yang mengandung teks salah satu region default)
+        xpath_dropdown = "//div[contains(@class, 'rail-select__control')]//p[contains(text(), 'USA') or contains(text(), 'Netherlands') or contains(text(), 'Singapore')]"
+        tunggu_dan_klik(driver, wait, By.XPATH, xpath_dropdown, retries=3)
+        time.sleep(1.5) # Wajib menunggu sedikit agar animasi dropdown React selesai dirender
+
+        # 2. Klik Opsi Region yang terpilih acak
+        # Mencari opsi di dalam menu/listbox yang di-render saat dropdown terbuka
+        xpath_opsi = f"//div[contains(@id, 'option') or contains(@class, 'rail-select__menu')]//p[text()='{region_terpilih}']"
+        # Gunakan JS click karena elemen listbox seringkali tumpang tindih/terkena overlay
+        klik_dengan_js(driver, wait, By.XPATH, xpath_opsi, retries=3)
+        time.sleep(2)
+        # ======================================================
+        # ======================================================
+        print("[*] Mengubah jumlah instans (replica) menjadi 2...")
+        
+        # Cari input bertipe number yang memiliki atribut min='1'
+        xpath_input_angka = "//input[@type='number' and @min='1']"
+        
+        # Gunakan klik=True agar kursor/fokus masuk ke dalam kotak input
+        input_angka = tunggu_dan_klik(driver, wait, By.XPATH, xpath_input_angka, retries=3, klik=True)
+        time.sleep(1) # Tunggu kursor berkedip di dalam input
+        
+        # Blok isi teks dengan (Ctrl + A)
+        import sys
+        if sys.platform == 'darwin': # Menangani OS Mac jika dijalankan di Mac
+            input_angka.send_keys(Keys.COMMAND, 'a')
+        else: # Untuk Windows/Linux
+            input_angka.send_keys(Keys.CONTROL, 'a')
+            
+        time.sleep(0.5)
+        # Hapus dengan Backspace
+        input_angka.send_keys(Keys.BACKSPACE)
+        time.sleep(0.5)
+        
+        # Ketik angka 2
+        input_angka.send_keys("2")
+        print("      -> Angka 2 berhasil diinput.")
+        time.sleep(1.5)
+        # ======================================================
 
         print("[14] Tunggu dan klik Deploy...")
         klik_dengan_js(driver, wait, By.CSS_SELECTOR, "button[data-testid='apply-changes']")
@@ -384,6 +437,59 @@ def proses_akun(proxy):
         time.sleep(1)
         docker_input2.send_keys(Keys.ENTER)
         time.sleep(2)
+        
+        # ======================================================
+        # [TAMBAHAN] Pilih Region Secara Acak
+        # ======================================================
+        print("[*] Membuka dropdown region server...")
+        daftar_region = [
+            "EU West (Amsterdam, Netherlands)",
+            "US West (California, USA)",
+            "US East (Virginia, USA)",
+            "Southeast Asia (Singapore)"
+        ]
+        region_terpilih = random.choice(daftar_region)
+        print(f"      -> Mencoba memilih region: {region_terpilih}")
+
+        # 1. Klik Dropdown Control (Cari div control yang mengandung teks salah satu region default)
+        xpath_dropdown = "//div[contains(@class, 'rail-select__control')]//p[contains(text(), 'USA') or contains(text(), 'Netherlands') or contains(text(), 'Singapore')]"
+        tunggu_dan_klik(driver, wait, By.XPATH, xpath_dropdown, retries=3)
+        time.sleep(1.5) # Wajib menunggu sedikit agar animasi dropdown React selesai dirender
+
+        # 2. Klik Opsi Region yang terpilih acak
+        # Mencari opsi di dalam menu/listbox yang di-render saat dropdown terbuka
+        xpath_opsi = f"//div[contains(@id, 'option') or contains(@class, 'rail-select__menu')]//p[text()='{region_terpilih}']"
+        # Gunakan JS click karena elemen listbox seringkali tumpang tindih/terkena overlay
+        klik_dengan_js(driver, wait, By.XPATH, xpath_opsi, retries=3)
+        time.sleep(2)
+        # ======================================================
+        # ======================================================
+        print("[*] Mengubah jumlah instans (replica) menjadi 2...")
+        
+        # Cari input bertipe number yang memiliki atribut min='1'
+        xpath_input_angka = "//input[@type='number' and @min='1']"
+        
+        # Gunakan klik=True agar kursor/fokus masuk ke dalam kotak input
+        input_angka = tunggu_dan_klik(driver, wait, By.XPATH, xpath_input_angka, retries=3, klik=True)
+        time.sleep(1) # Tunggu kursor berkedip di dalam input
+        
+        # Blok isi teks dengan (Ctrl + A)
+        import sys
+        if sys.platform == 'darwin': # Menangani OS Mac jika dijalankan di Mac
+            input_angka.send_keys(Keys.COMMAND, 'a')
+        else: # Untuk Windows/Linux
+            input_angka.send_keys(Keys.CONTROL, 'a')
+            
+        time.sleep(0.5)
+        # Hapus dengan Backspace
+        input_angka.send_keys(Keys.BACKSPACE)
+        time.sleep(0.5)
+        
+        # Ketik angka 2
+        input_angka.send_keys("2")
+        print("      -> Angka 2 berhasil diinput.")
+        time.sleep(1.5)
+        # ======================================================
 
         print("[21] Tunggu dan klik Deploy...")
         klik_dengan_js(driver, wait, By.CSS_SELECTOR, "button[data-testid='apply-changes']")
