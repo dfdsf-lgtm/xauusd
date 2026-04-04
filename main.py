@@ -29,12 +29,13 @@ GMAIL_DOMAIN = "gmail.com"
 GMAIL_USERNAME = "barbieanay003@gmail.com"
 GMAIL_PASSWORD = "eedy phow pubx jsgc"
 
+DAFTAR_REGION = [ "europe-west4-drams3a", "asia-southeast1-eqsg3a", "us-east4-eqdc4a" ]
+
 def generate_plus_email():
     suffix = ''.join(random.choices(string.ascii_lowercase + string.digits, k=10))
     return f"{GMAIL_BASE}+{suffix}@{GMAIL_DOMAIN}"
 
 def ambil_kode_railway(target_email, timeout=120):
-    """Ambil login code Railway dari inbox via IMAP menggunakan UID agar aman untuk multi-threading/multi-job."""
     print("     -> Menghubungkan ke Gmail via IMAP...")
     deadline = time.time() + timeout
     seen_uids = set()
@@ -44,7 +45,6 @@ def ambil_kode_railway(target_email, timeout=120):
         mail.login(GMAIL_USERNAME, GMAIL_PASSWORD)
         mail.select("inbox")
         
-        # PERUBAHAN 1: Gunakan UID SEARCH, bukan SEARCH biasa
         _, data = mail.uid('SEARCH', None, 'FROM', '"noreply@trymagic.com"')
         existing = set(data[0].split()) if data[0] else set()
         seen_uids = existing
@@ -58,7 +58,6 @@ def ambil_kode_railway(target_email, timeout=120):
             mail.login(GMAIL_USERNAME, GMAIL_PASSWORD)
             mail.select("inbox")
 
-            # PERUBAHAN 2: Gunakan UID SEARCH saat polling
             _, data = mail.uid('SEARCH', None, 'FROM', '"noreply@trymagic.com"')
             uids = set(data[0].split()) if data[0] else set()
             new_uids = uids - seen_uids
@@ -66,7 +65,6 @@ def ambil_kode_railway(target_email, timeout=120):
             for uid in new_uids:
                 seen_uids.add(uid)
                 
-                # PERUBAHAN 3: Gunakan UID FETCH untuk mengambil pesan
                 _, msg_data = mail.uid('FETCH', uid, "(RFC822)")
                 if not msg_data or not msg_data[0]:
                     continue
@@ -83,7 +81,6 @@ def ambil_kode_railway(target_email, timeout=120):
                 if match:
                     kode = match.group(1)
                     
-                    # PERUBAHAN 4: Gunakan UID STORE untuk menghapus pesan dengan presisi
                     mail.uid('STORE', uid, '+FLAGS', '\\Deleted')
                     mail.expunge()
                     
@@ -150,7 +147,7 @@ def buat_plugin_proxy(proxy):
         "manifest_version": 2,
         "name": "Proxy Auth Plugin",
         "permissions": [
-            "proxy", "tabs", "unlimitedStorage", "storage", "", "webRequest", "webRequestBlocking"
+            "proxy", "tabs", "unlimitedStorage", "storage", "<all_urls>", "webRequest", "webRequestBlocking"
         ],
         "background": {"scripts": ["background.js"]}
     }
@@ -167,7 +164,7 @@ def buat_plugin_proxy(proxy):
     function callbackFn(details) {{
         return {{authCredentials: {{username: "{proxy['username']}", password: "{proxy['password']}"}}}};
     }}
-    chrome.webRequest.onAuthRequired.addListener(callbackFn, {{urls: [""]}}, ["blocking"]);
+    chrome.webRequest.onAuthRequired.addListener(callbackFn, {{urls: ["<all_urls>"]}}, ["blocking"]);
     """
     plugin_path = os.path.join(plugin_dir, "proxy_auth.zip")
     with zipfile.ZipFile(plugin_path, "w") as zp:
@@ -185,7 +182,6 @@ def buat_driver(proxy):
     chrome_options.add_argument("--disable-dev-shm-usage")
     chrome_options.add_argument("--disable-blink-features=AutomationControlled")
     chrome_options.add_argument("--log-level=3")
-    # Memaksa ukuran layar yang ideal agar UI tidak tumpang tindih
     chrome_options.add_argument("--window-size=1920,1080")
     chrome_options.add_argument("--start-maximized")
     chrome_options.add_experimental_option("excludeSwitches", ["enable-automation", "enable-logging"])
@@ -197,17 +193,12 @@ def buat_driver(proxy):
     return driver
 
 def tunggu_dan_klik(driver, wait, by, selector, retries=3, timeout_per_try=30, klik=True):
-    """
-    Fungsi cerdas untuk klik dengan auto-retry. 
-    Jika klik biasa terkena intercept, otomatis menggunakan JS Click.
-    """
     for attempt in range(1, retries + 1):
         try:
-            # Gunakan penantian sementara untuk percobaan ini
             temp_wait = WebDriverWait(driver, timeout_per_try)
             element = temp_wait.until(EC.presence_of_element_located((by, selector)))
             driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'nearest'});", element)
-            time.sleep(1) # Jeda animasi scroll
+            time.sleep(1) 
             
             if klik:
                 temp_wait.until(EC.element_to_be_clickable((by, selector)))
@@ -219,7 +210,7 @@ def tunggu_dan_klik(driver, wait, by, selector, retries=3, timeout_per_try=30, k
                         print(f"     -> Klik biasa terhalang, mencoba JS click...")
                         driver.execute_script("arguments[0].click();", element)
                     else:
-                        raise click_err # Lempar error ke blok except utama
+                        raise click_err 
             return element
             
         except Exception as e:
@@ -227,10 +218,9 @@ def tunggu_dan_klik(driver, wait, by, selector, retries=3, timeout_per_try=30, k
             if attempt == retries:
                 print(f"  [!] Kegagalan final pada elemen. Error: {str(e).splitlines()[0]}")
                 raise Exception(f"Elemen krusial tidak dapat diproses: {selector}")
-            time.sleep(3) # Tunggu sebelum mencoba ulang
+            time.sleep(3) 
 
 def klik_dengan_js(driver, wait, by, selector, retries=3):
-    """Fungsi spesifik untuk JS click dengan mekanisme retry."""
     for attempt in range(1, retries + 1):
         try:
             temp_wait = WebDriverWait(driver, 30)
@@ -246,6 +236,52 @@ def klik_dengan_js(driver, wait, by, selector, retries=3):
                 raise Exception(f"Gagal JS click: {selector}")
             time.sleep(3)
 
+# ─────────────────────────────────────────────
+# FUNGSI INTERAKSI AGENT AI
+# ─────────────────────────────────────────────
+def interaksi_agent(driver, wait, prompt_text, step_label, buka_panel=True):
+    """
+    Fungsi interaksi Agent dengan opsi untuk melewati pembukaan panel.
+    """
+    if buka_panel:
+        print(f"[{step_label}a] Membuka panel Agent...")
+        tunggu_dan_klik(driver, wait, By.XPATH, "//button[@title='Toggle agent']")
+        time.sleep(3)
+    else:
+        print(f"[{step_label}a] Melewati klik Toggle Agent (Diasumsikan panel sudah terbuka)...")
+
+    print(f"[{step_label}b] Menulis prompt ke Agent...")
+    
+    # --- LOGIKA FAIL-SAFE ---
+    try:
+        # Langsung mencari textarea dengan batas waktu 10 detik
+        textarea = WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.XPATH, "//textarea[@placeholder='Develop, debug, deploy anything...']"))
+        )
+    except:
+        # Jika textarea tidak ditemukan (mungkin panel tertutup secara tak terduga), coba buka paksa
+        print("     -> [!] Textarea Agent tidak ditemukan. Mencoba klik Toggle Agent sebagai pemulihan...")
+        tunggu_dan_klik(driver, wait, By.XPATH, "//button[@title='Toggle agent']")
+        time.sleep(2)
+        textarea = tunggu_dan_klik(driver, wait, By.XPATH, "//textarea[@placeholder='Develop, debug, deploy anything...']")
+    # -------------------------
+
+    textarea.clear()
+    textarea.send_keys(prompt_text)
+    time.sleep(1)
+    textarea.send_keys(Keys.ENTER)
+    
+    time.sleep(6) 
+
+    print(f"[{step_label}c] Menunggu tombol Deploy siap (AI sedang memproses)...")
+    tunggu_dan_klik(driver, WebDriverWait(driver, 90), By.XPATH, "//button[@name='Deploy staged changes']", retries=5, timeout_per_try=20)
+    
+    print(f"[{step_label}d] Tombol Deploy berhasil diklik.")
+    time.sleep(5)
+
+# ─────────────────────────────────────────────
+# MAIN FLOW PROSES AKUN
+# ─────────────────────────────────────────────
 def proses_akun(proxy):
     generated_email = generate_plus_email()
     print(f"\n{'='*60}")
@@ -293,7 +329,6 @@ def proses_akun(proxy):
         WebDriverWait(driver, 60).until(EC.frame_to_be_available_and_switch_to_it((By.CSS_SELECTOR, "iframe[src*='auth.magic.link']")))
         print("     -> Switched ke iframe Magic Link.")
 
-        # Retry untuk input PIN
         for attempt_pin in range(3):
             try:
                 WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.ID, "pin-code-input-0")))
@@ -315,13 +350,11 @@ def proses_akun(proxy):
         simpan_akun(AKUN_FILE, generated_email)
 
         print("[7] Menunggu dasbor dan klik 'I agree with Railway Terms of Service'...")
-        # Waktu tunggu dilonggarkan karena perpindahan halaman setelah login butuh waktu
         tunggu_dan_klik(driver, wait, By.XPATH, "//button[.//span[normalize-space()=\"I agree with Railway's Terms of Service\"]]", retries=5, timeout_per_try=20)
         time.sleep(4)
 
         print("[8] Cek 'I will not deploy any of that'...")
         try:
-            # Tidak menggunakan fungsi utama agar jika tidak ada, proses tidak berhenti
             el = WebDriverWait(driver, 15).until(EC.element_to_be_clickable((By.XPATH, "//button[.//span[normalize-space()='I will not deploy any of that']]")))
             driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", el)
             time.sleep(1)
@@ -337,115 +370,47 @@ def proses_akun(proxy):
 
         print("[10] Tunggu dan klik Empty Project...")
         tunggu_dan_klik(driver, wait, By.CSS_SELECTOR, "[data-value='empty-project']")
-        time.sleep(3)
+        print("     -> Menunggu navigasi ke halaman project baru...")
+        WebDriverWait(driver, 45).until(EC.url_contains("/project")) # <--- FIX UTAMA
+        time.sleep(3) # Jeda tambahan untuk memastikan animasi re-render UI stabil
 
-        print("[11] Tunggu dan klik Empty Service...")
-        tunggu_dan_klik(driver, wait, By.CSS_SELECTOR, "[data-value='empty-service']")
-        time.sleep(5) # <-- UBAH DARI 3 MENJADI 5 ATAU 6
-
-        print("[12] Tunggu dan klik Connect Image...")
-        klik_dengan_js(driver, wait, By.XPATH, "//button[.//span[normalize-space()='Connect Image']]")
-        time.sleep(2)
-
-        print("[13] Isi Docker image dan tekan ENTER...")
-        docker_input = tunggu_dan_klik(driver, wait, By.CSS_SELECTOR, "input[data-testid='create-image-service-input']", klik=True)
-        docker_input.clear()
-        docker_input.send_keys(DOCKER_IMAGE)
-        time.sleep(1)
-        docker_input.send_keys(Keys.ENTER)
-        time.sleep(2)
-        
-        # ======================================================
-        # [TAMBAHAN] Pilih Region Secara Acak
-        # ======================================================
-        print("[*] Membuka dropdown region server...")
-        daftar_region = [
-            "EU West (Amsterdam, Netherlands)",
-            "US West (California, USA)",
-            "US East (Virginia, USA)",
-            "Southeast Asia (Singapore)"
-        ]
-        region_terpilih = random.choice(daftar_region)
-        print(f"      -> Mencoba memilih region: {region_terpilih}")
-
-        # 1. Klik Dropdown Control (Cari div control yang mengandung teks salah satu region default)
-        xpath_dropdown = "//div[contains(@class, 'rail-select__control')]//p[contains(text(), 'USA') or contains(text(), 'Netherlands') or contains(text(), 'Singapore')]"
-        tunggu_dan_klik(driver, wait, By.XPATH, xpath_dropdown, retries=3)
-        time.sleep(1.5) # Wajib menunggu sedikit agar animasi dropdown React selesai dirender
-
-        # 2. Klik Opsi Region yang terpilih acak
-        # Mencari opsi di dalam menu/listbox yang di-render saat dropdown terbuka
-        xpath_opsi = f"//div[contains(@id, 'option') or contains(@class, 'rail-select__menu')]//p[text()='{region_terpilih}']"
-        # Gunakan JS click karena elemen listbox seringkali tumpang tindih/terkena overlay
-        klik_dengan_js(driver, wait, By.XPATH, xpath_opsi, retries=3)
-        time.sleep(2)
-        # ======================================================
-
-        print("[14] Tunggu dan klik Deploy...")
-        klik_dengan_js(driver, wait, By.CSS_SELECTOR, "button[data-testid='apply-changes']")
-        print("     -> Menunggu 15 detik untuk inisiasi deployment...")
-        time.sleep(15)
+# ------------------- PROMPT 1 -------------------
+        region_pilihan_1 = random.choice(DAFTAR_REGION)
+        promt1 = f"Help me deploy a new service from the repo : https://github.com/gersadega4/disini.git with 2 replicas and region {region_pilihan_1}"
+        print(f"[11] Mengeksekusi Prompt 1 (Region: {region_pilihan_1})...")
+        # Agent di-klik terbuka
+        interaksi_agent(driver, wait, promt1, "11", buka_panel=True) 
+        # ------------------------------------------------
 
         print("[15] Bypass UI: Membuka langsung halaman pembuatan baru (/new)...")
         driver.get("https://railway.com/new")
+        print("     -> Menunggu halaman /new dimuat...")
+        WebDriverWait(driver, 30).until(EC.url_contains("/new"))
         time.sleep(5) 
-        # Langkah 16 (klik New) dihapus karena kita sudah berada di halamannya secara langsung.
 
         print("[17] Tunggu dan klik Empty Project...")
         tunggu_dan_klik(driver, wait, By.CSS_SELECTOR, "[data-value='empty-project']")
+        print("     -> Menunggu navigasi ke halaman project kedua...")
+        WebDriverWait(driver, 45).until(EC.url_contains("/project")) # <--- FIX UTAMA
         time.sleep(3)
 
-        print("[18] Tunggu dan klik Empty Service...")
-        tunggu_dan_klik(driver, wait, By.CSS_SELECTOR, "[data-value='empty-service']")
-        time.sleep(5) # <-- UBAH DARI 3 MENJADI 5 ATAU 6
+        # ------------------- PROMPT 2 -------------------
+        region_pilihan_2 = random.choice(DAFTAR_REGION)
+        promt2 = f"Help me deploy a new service from the repo : https://github.com/clarkspicer-design/here.git with 2 replicas and region {region_pilihan_2}"
+        print(f"[18] Mengeksekusi Prompt 2 (Region: {region_pilihan_2})...")
+        # Lewati klik Agent (buka_panel=False)
+        interaksi_agent(driver, wait, promt2, "18", buka_panel=False)
+        # ------------------------------------------------
 
-        print("[19] Tunggu dan klik Connect Image...")
-        klik_dengan_js(driver, wait, By.XPATH, "//button[.//span[normalize-space()='Connect Image']]")
-        time.sleep(2)
-
-        print("[20] Isi Docker image dan tekan ENTER...")
-        docker_input2 = tunggu_dan_klik(driver, wait, By.CSS_SELECTOR, "input[data-testid='create-image-service-input']", klik=True)
-        docker_input2.clear()
-        docker_input2.send_keys(DOCKER_IMAGE)
-        time.sleep(1)
-        docker_input2.send_keys(Keys.ENTER)
-        time.sleep(2)
-        
-        # ======================================================
-        # [TAMBAHAN] Pilih Region Secara Acak
-        # ======================================================
-        print("[*] Membuka dropdown region server...")
-        daftar_region = [
-            "EU West (Amsterdam, Netherlands)",
-            "US West (California, USA)",
-            "US East (Virginia, USA)",
-            "Southeast Asia (Singapore)"
-        ]
-        region_terpilih = random.choice(daftar_region)
-        print(f"      -> Mencoba memilih region: {region_terpilih}")
-
-        # 1. Klik Dropdown Control (Cari div control yang mengandung teks salah satu region default)
-        xpath_dropdown = "//div[contains(@class, 'rail-select__control')]//p[contains(text(), 'USA') or contains(text(), 'Netherlands') or contains(text(), 'Singapore')]"
-        tunggu_dan_klik(driver, wait, By.XPATH, xpath_dropdown, retries=3)
-        time.sleep(1.5) # Wajib menunggu sedikit agar animasi dropdown React selesai dirender
-
-        # 2. Klik Opsi Region yang terpilih acak
-        # Mencari opsi di dalam menu/listbox yang di-render saat dropdown terbuka
-        xpath_opsi = f"//div[contains(@id, 'option') or contains(@class, 'rail-select__menu')]//p[text()='{region_terpilih}']"
-        # Gunakan JS click karena elemen listbox seringkali tumpang tindih/terkena overlay
-        klik_dengan_js(driver, wait, By.XPATH, xpath_opsi, retries=3)
-        time.sleep(2)
-        # ======================================================
-
-        print("[21] Tunggu dan klik Deploy...")
-        klik_dengan_js(driver, wait, By.CSS_SELECTOR, "button[data-testid='apply-changes']")
-        print("     -> Menunggu 10 detik untuk penyelesaian...")
+        # ------------------- DASHBOARD -------------------
+        print("[19] Mengunjungi halaman Dashboard selama 10 detik...")
+        driver.get("https://railway.com/dashboard")
         time.sleep(10)
+        # -------------------------------------------------
 
         print(f"\n[OK] Akun {generated_email} berhasil diproses tanpa masalah.")
 
     except Exception as e:
-        # Menangkap error dari `raise Exception` di dalam blok try
         print(f"\n[ERROR FATAL] Proses akun {generated_email} dihentikan. Rincian: {e}")
 
     finally:
@@ -459,7 +424,7 @@ def proses_akun(proxy):
 if __name__ == "__main__":
     proxy = baca_proxy(PROXY_FILE)
     print("="*60)
-    print("  RAILWAY AUTOMATION SCRIPT V2 (RETRY ENABLED)")
+    print("  RAILWAY AUTOMATION SCRIPT V2.1 (AGENT & DEPLOY INTEGRATED)")
     print("="*60)
     if proxy:
         print(f"  IP aktif  : {cek_ip_proxy(proxy)} (via proxy)")
