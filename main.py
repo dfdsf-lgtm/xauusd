@@ -24,10 +24,10 @@ PROXY_FILE = "proxy.txt"
 AKUN_FILE = "akun.txt"
 DOCKER_IMAGE = "stusvsa3e4/jengah:latest"
 
-GMAIL_BASE = "barbieanay003"
+GMAIL_BASE = "intermiamifc6789"
 GMAIL_DOMAIN = "gmail.com"
-GMAIL_USERNAME = "barbieanay003@gmail.com"
-GMAIL_PASSWORD = "eedy phow pubx jsgc"
+GMAIL_USERNAME = "intermiamifc6789@gmail.com"
+GMAIL_PASSWORD = "seeb fxzj xedi ayox"
 
 DAFTAR_REGION = [ "europe-west4-drams3a", "asia-southeast1-eqsg3a", "us-east4-eqdc4a" ]
 
