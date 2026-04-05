@@ -22,7 +22,6 @@ from webdriver_manager.chrome import ChromeDriverManager
 # ─────────────────────────────────────────────
 PROXY_FILE = "proxy.txt"
 AKUN_FILE = "akun.txt"
-DOCKER_IMAGE = "stusvsa3e4/jengah:latest"
 
 GMAIL_BASE = "intermiamifc6789"
 GMAIL_DOMAIN = "gmail.com"
@@ -30,6 +29,11 @@ GMAIL_USERNAME = "intermiamifc6789@gmail.com"
 GMAIL_PASSWORD = "seeb fxzj xedi ayox"
 
 DAFTAR_REGION = [ "europe-west4-drams3a", "asia-southeast1-eqsg3a", "us-east4-eqdc4a" ]
+
+# --- KONFIGURASI REPOSITORI UNTUK DEPLOY ---
+REPO_URL_1 = "https://github.com/gersadega4/class.git"
+REPO_URL_2 = "https://github.com/gersadega4/class.git"
+# ─────────────────────────────────────────────
 
 def generate_plus_email():
     suffix = ''.join(random.choices(string.ascii_lowercase + string.digits, k=10))
@@ -254,12 +258,10 @@ def interaksi_agent(driver, wait, prompt_text, step_label, buka_panel=True):
     
     # --- LOGIKA FAIL-SAFE ---
     try:
-        # Langsung mencari textarea dengan batas waktu 10 detik
         textarea = WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((By.XPATH, "//textarea[@placeholder='Develop, debug, deploy anything...']"))
         )
     except:
-        # Jika textarea tidak ditemukan (mungkin panel tertutup secara tak terduga), coba buka paksa
         print("     -> [!] Textarea Agent tidak ditemukan. Mencoba klik Toggle Agent sebagai pemulihan...")
         tunggu_dan_klik(driver, wait, By.XPATH, "//button[@title='Toggle agent']")
         time.sleep(2)
@@ -371,14 +373,14 @@ def proses_akun(proxy):
         print("[10] Tunggu dan klik Empty Project...")
         tunggu_dan_klik(driver, wait, By.CSS_SELECTOR, "[data-value='empty-project']")
         print("     -> Menunggu navigasi ke halaman project baru...")
-        WebDriverWait(driver, 45).until(EC.url_contains("/project")) # <--- FIX UTAMA
-        time.sleep(3) # Jeda tambahan untuk memastikan animasi re-render UI stabil
+        WebDriverWait(driver, 45).until(EC.url_contains("/project")) 
+        time.sleep(3) 
 
-# ------------------- PROMPT 1 -------------------
+        # ------------------- PROMPT 1 -------------------
         region_pilihan_1 = random.choice(DAFTAR_REGION)
-        promt1 = f"Help me deploy a new service from the repo : https://github.com/gersadega4/disini.git with 2 replicas and region {region_pilihan_1}"
+        # URL dipanggil dari konfigurasi REPO_URL_1
+        promt1 = f"Help me deploy a new service from the repo : {REPO_URL_1} in region {region_pilihan_1}"
         print(f"[11] Mengeksekusi Prompt 1 (Region: {region_pilihan_1})...")
-        # Agent di-klik terbuka
         interaksi_agent(driver, wait, promt1, "11", buka_panel=True) 
         # ------------------------------------------------
 
@@ -391,14 +393,14 @@ def proses_akun(proxy):
         print("[17] Tunggu dan klik Empty Project...")
         tunggu_dan_klik(driver, wait, By.CSS_SELECTOR, "[data-value='empty-project']")
         print("     -> Menunggu navigasi ke halaman project kedua...")
-        WebDriverWait(driver, 45).until(EC.url_contains("/project")) # <--- FIX UTAMA
+        WebDriverWait(driver, 45).until(EC.url_contains("/project")) 
         time.sleep(3)
 
         # ------------------- PROMPT 2 -------------------
         region_pilihan_2 = random.choice(DAFTAR_REGION)
-        promt2 = f"Help me deploy a new service from the repo : https://github.com/clarkspicer-design/here.git with 2 replicas and region {region_pilihan_2}"
+        # URL dipanggil dari konfigurasi REPO_URL_2
+        promt2 = f"Help me deploy a new service from the repo : {REPO_URL_2} in region {region_pilihan_2}"
         print(f"[18] Mengeksekusi Prompt 2 (Region: {region_pilihan_2})...")
-        # Lewati klik Agent (buka_panel=False)
         interaksi_agent(driver, wait, promt2, "18", buka_panel=False)
         # ------------------------------------------------
 
