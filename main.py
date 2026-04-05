@@ -31,8 +31,8 @@ GMAIL_PASSWORD = "seeb fxzj xedi ayox"
 DAFTAR_REGION = [ "europe-west4-drams3a", "asia-southeast1-eqsg3a", "us-east4-eqdc4a" ]
 
 # --- KONFIGURASI REPOSITORI UNTUK DEPLOY ---
-REPO_URL_1 = "https://github.com/gersadega4/class.git"
-REPO_URL_2 = "https://github.com/gersadega4/class.git"
+REPO_URL_1 = "https://github.com/gersadega4/disini.git"
+REPO_URL_2 = "https://github.com/gersadega4/disini.git"
 # ─────────────────────────────────────────────
 
 def generate_plus_email():
@@ -379,35 +379,35 @@ def proses_akun(proxy):
         # ------------------- PROMPT 1 -------------------
         region_pilihan_1 = random.choice(DAFTAR_REGION)
         # URL dipanggil dari konfigurasi REPO_URL_1
-        promt1 = f"Help me deploy a new service from the repo : {REPO_URL_1} in region {region_pilihan_1}"
+        promt1 = f"Help me deploy a new service from the repo : {REPO_URL_1} with 2 replicas in region {region_pilihan_1}"
         print(f"[11] Mengeksekusi Prompt 1 (Region: {region_pilihan_1})...")
         interaksi_agent(driver, wait, promt1, "11", buka_panel=True) 
         # ------------------------------------------------
 
-        print("[15] Bypass UI: Membuka langsung halaman pembuatan baru (/new)...")
-        driver.get("https://railway.com/new")
-        print("     -> Menunggu halaman /new dimuat...")
-        WebDriverWait(driver, 30).until(EC.url_contains("/new"))
-        time.sleep(5) 
+        #print("[15] Bypass UI: Membuka langsung halaman pembuatan baru (/new)...")
+        #driver.get("https://railway.com/new")
+        #print("     -> Menunggu halaman /new dimuat...")
+        #WebDriverWait(driver, 30).until(EC.url_contains("/new"))
+        #time.sleep(5) 
 
-        print("[17] Tunggu dan klik Empty Project...")
-        tunggu_dan_klik(driver, wait, By.CSS_SELECTOR, "[data-value='empty-project']")
-        print("     -> Menunggu navigasi ke halaman project kedua...")
-        WebDriverWait(driver, 45).until(EC.url_contains("/project")) 
-        time.sleep(3)
+        #print("[17] Tunggu dan klik Empty Project...")
+        #tunggu_dan_klik(driver, wait, By.CSS_SELECTOR, "[data-value='empty-project']")
+        #print("     -> Menunggu navigasi ke halaman project kedua...")
+        #WebDriverWait(driver, 45).until(EC.url_contains("/project")) 
+        #time.sleep(3)
 
         # ------------------- PROMPT 2 -------------------
-        region_pilihan_2 = random.choice(DAFTAR_REGION)
+        #region_pilihan_2 = random.choice(DAFTAR_REGION)
         # URL dipanggil dari konfigurasi REPO_URL_2
-        promt2 = f"Help me deploy a new service from the repo : {REPO_URL_2} in region {region_pilihan_2}"
-        print(f"[18] Mengeksekusi Prompt 2 (Region: {region_pilihan_2})...")
-        interaksi_agent(driver, wait, promt2, "18", buka_panel=False)
+        #promt2 = f"Help me deploy a new service from the repo : {REPO_URL_2} in region {region_pilihan_2}"
+        #print(f"[18] Mengeksekusi Prompt 2 (Region: {region_pilihan_2})...")
+        #interaksi_agent(driver, wait, promt2, "18", buka_panel=False)
         # ------------------------------------------------
 
         # ------------------- DASHBOARD -------------------
-        print("[19] Mengunjungi halaman Dashboard selama 10 detik...")
-        driver.get("https://railway.com/dashboard")
-        time.sleep(10)
+        #print("[19] Mengunjungi halaman Dashboard selama 10 detik...")
+        #driver.get("https://railway.com/dashboard")
+        #time.sleep(10)
         # -------------------------------------------------
 
         print(f"\n[OK] Akun {generated_email} berhasil diproses tanpa masalah.")
